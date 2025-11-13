@@ -1,0 +1,57 @@
+# path to the checkpoint file containing the model
+model_path: checkpoints/best_FM_checkpoint.pytorch
+
+## Make sure to double check datapath
+ 
+# model configuration
+model:
+  # model class
+  name: UNet3D
+  # number of input channels to the model
+  in_channels: 1
+  # number of output channels
+  out_channels: 185
+  # determines the order of operators in a single layer (gcr - GroupNorm+Conv3d+ReLU)
+  layer_order: gcr
+  # feature maps scale factor
+  f_maps: 128
+  # number of groups in the groupnorm
+  num_groups: 16
+  # apply element-wise nn.Sigmoid after the final 1x1 convolution, otherwise apply nn.Softmax
+  final_sigmoid: false
+  # if True applies the final normalization layer (sigmoid or softmax), otherwise the networks returns the output from the final convolution layer; use False for regression problems, e.g. de-noising
+  is_segmentation: true
+# predictor configuration
+predictor:
+  # standard in memory predictor
+  name: 'LivePredictor'
+# specify the test datasets
+loaders:
+  # batch dimension; if number of GPUs is N > 1, then a batch_size of N * batch_size will automatically be taken for DataParallel
+  batch_size: 1
+  # path to the raw data within the H5
+  raw_internal_path: raw
+  # how many subprocesses to use for data loading
+  num_workers: 2
+  # test loaders configuration
+  test:
+    # paths to the test datasets; if a given path is a directory all H5 files ('*.h5', '*.hdf', '*.hdf5', '*.hd5')
+    # inside this this directory will be included as well (non-recursively)
+    # CHANGE THIS PATH
+    file_paths:
+       - ''
+
+    # SliceBuilder configuration, i.e. how to iterate over the input volume patch-by-patch
+    slice_builder:
+      # SliceBuilder class
+      name: SliceBuilder
+      # train patch size given to the network (adapt to fit in your GPU mem, generally the bigger patch the better)
+      patch_shape: [64, 120, 284]
+      # train stride between patches
+      stride_shape: [20, 40, 110]
+
+    transformer:
+        raw:
+          - name: Normalize
+          - name: ToTensor
+            expand_dims: true

@@ -1,0 +1,20 @@
+.idea
+.pytest_cache
+.ipynb_checkpoints
+
+/bioimage-io/**/pytorch3dunet
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Tensorboard logs
+logs/
+
+# Build files
+build/
+
+# Python packages
+pytorch3dunet.egg-info/
+dist/
