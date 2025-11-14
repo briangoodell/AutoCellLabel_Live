@@ -21,8 +21,9 @@ def initialize(fixed_image, moving_image, dx, dy, angles, batch_size, device):
     transformations = memory_dict["transformations"]
 
     # Move data to GPU
-    fixed_image = torch.tensor(fixed_image, device=device, dtype=torch.float32)
-    moving_image = torch.tensor(moving_image, device=device, dtype=torch.float32)
+    if not isinstance(fixed_image, torch.Tensor):
+        fixed_image = torch.tensor(fixed_image, device=device, dtype=torch.float32)
+        moving_image = torch.tensor(moving_image, device=device, dtype=torch.float32)
 
     # Repeat the image tensor to batch process
     memory_dict["moving_images_repeated"] = moving_image.unsqueeze(0).repeat(batch_size, 1, 1, 1)
@@ -107,7 +108,7 @@ def max_intensity_projection_and_downsample_torch(image,
 
     # Downsampling
     downsampled_shape = (mip.shape[0] // downsample_factor, mip.shape[1] // downsample_factor)
-    downsampled_image = torch.zeros(downsampled_shape)
+    downsampled_image = torch.zeros(downsampled_shape, device=image.device)
 
     for i in range(0, mip.shape[0], downsample_factor):
         for j in range(0, mip.shape[1], downsample_factor):

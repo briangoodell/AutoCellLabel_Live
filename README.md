@@ -44,7 +44,7 @@ Using the FM ACL labels, we threshold them, run a very naive filtration, and the
 This is the main file. Provide a folder to watch, a pytorch3dunet config file, and run. The traces will be saved to the provided file. It currently supports `nd2`, `nrrd`, and `h5` filetypes, although it should be incredibly easy to add more.
 
 Example command:
-`CUDA_VISIBLE_DEVICES=2 python ACLL_folder_watcher.py --config ./parameters/py3dunetFMLivePredict.yaml`
+`CUDA_VISIBLE_DEVICES=2 python ACLL_folder_watcher.py --config configs/py3dunetFMLivePredict.yaml`
 
 A big TODO is to make the config file allow customized combinations of the components of ACLL, but currently it's only the config for the UNet
 

@@ -68,7 +68,7 @@ class LivePredictor(_AbstractPredictor):
     def __init__(self, model, loader, output_file, config, **kwargs):
         super().__init__(model, loader, output_file, config, **kwargs)
 
-    def predict(self, red_chan, green_chan = None, chan_align_params = None, frame = 0):
+    def predict(self, red_chan, green_chan = None, chan_align_params = None, frame = 0, labels = None):
         # def my_handler(prof): 
         #     print("Trace ready") 
         #     torch.profiler.tensorboard_trace_handler("/home/brian/data4/brian/freelyMoving/profiling")(prof) 
@@ -144,35 +144,14 @@ class LivePredictor(_AbstractPredictor):
             # print(batch.shape)
             # forward pass
             assert batch.device == device, f"Batch device {batch.device} does not match model device {device}"
-            predictions = self.model(batch)
-            assert predictions.shape[0] == 1, "Batch size other than 1 not supported in LivePredictor"
+            # predictions = self.model(batch)
+            # assert predictions.shape[0] == 1, "Batch size other than 1 not supported in LivePredictor"
 
             # with h5py.File(f"/home/brian/data4/brian/freelyMoving/data/ACLL_unsheared/NRRD_raw_preds/preds_{frame}.h5", "w") as f:
             #     f.create_dataset("predictions", data=predictions.detach().cpu())
 
 
-            # predictions = predictions.squeeze(0)  # Remove batch dim
-            #### PROCESS OUTPUT ON GPU ####
-            ## Get the predicted class for each voxel
-            # max_prob, labels = predictions.max(dim=1)
-            # labels = torch.where(max_prob >= pred_threshold, labels, torch.zeros_like(labels))
-            # labels = labels.view(-1)  # Flatten to 1D
-
-            ## Third attempt for GPU prediction processing:
-            # Thresh
-            # Everything in each chan that's above thresh gets mean or median
-            # print(predictions.shape)
-            # probs = predictions.clone()
-            num_classes = predictions.shape[1]
-            mask = (predictions > pred_threshold).float()
-            kernel = torch.ones((num_classes, 1, blur_size, blur_size, blur_size), device=device)
-            kernel = kernel / kernel.numel()
-            blurred_probs = F.conv3d(predictions, kernel, stride=1, padding=blur_size // 2, groups = num_classes) * mask
-            blurred_probs = blurred_probs.squeeze(0)
-            # print(torch.unsqueeze(torch.unsqueeze(torch.unsqueeze(probs, -1), -1), -1).expand(predictions.shape).shape)
-            # Then max over layers
-            max_prob, labels = blurred_probs.max(dim=0)
-            # print(labels.shape)
+            print(labels.shape)
             labels = labels.view(-1)  # Flatten to 1D
 
             ## Get trace from image. 
@@ -258,10 +237,18 @@ class LivePredictor(_AbstractPredictor):
             # output_file.create_dataset("probs", data=probs.cpu().numpy())
 
         # h5_output_file.create_dataset("signal", data=signal.cpu().numpy())
-        sig_DS = h5_output_file['signal'] if 'signal' in h5_output_file else h5_output_file.create_dataset("signal", (out_channels,0), maxshape=(out_channels,None), chunks=True)
+        
+        
+        # sig_DS = h5_output_file['signal'] if 'signal' in h5_output_file else h5_output_file.create_dataset("signal", (out_channels,0), maxshape=(out_channels,None), chunks=True)
+        
+        # Add chan for uncertain lab. Just for running on ground truth vals
+        sig_DS = h5_output_file['signal'] if 'signal' in h5_output_file else h5_output_file.create_dataset("signal", (out_channels + 1, 0), maxshape=(out_channels + 1,None), chunks=True)
+        
         current_shape = sig_DS.shape#.cpu().numpy()
         new_length = current_shape[1] + 1
         sig_DS.resize(new_length, axis=1)
+        # if signal.shape[0] == 186: # Chop off last "unsure" label channel. Just for running on ground truth vals
+
         sig_DS[:, -1] = signal.cpu().numpy()
 
         # close the output H5 file

@@ -1,0 +1,27 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "ACLL Folder Debug",
+            "type": "debugpy",
+            "request": "launch",
+            "stopOnEntry": false,
+            "python": "/home/brian/.conda/envs/ACLLiveEnv/bin/python",
+            "program": "/home/brian/notebooks/brian/CellAutoLab_Live/ACLL_folder_watcher.py",
+            "cwd": "",
+            "console": "integratedTerminal",
+            "env": {
+                "CUDA_VISIBLE_DEVICES": "2",
+                // "PYTORCH_CUDA_ALLOC_CONF":"backend:cudaMallocAsync"
+            },
+            "args": [
+                "--config", "/home/brian/notebooks/brian/CellAutoLab_Live/configs/py3dunetFMLivePredict.yaml"
+            ],
+            "internalConsoleOptions": "neverOpen",
+            "justMyCode": false            
+        },
+    ]
+}

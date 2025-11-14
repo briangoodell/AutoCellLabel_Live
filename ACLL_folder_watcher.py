@@ -125,37 +125,39 @@ def main():
         # for file in sorted(files, key=lambda x: int(x.split('_')[-1].split(".")[0])):
         for file in sorted(files, key=lambda x: int(x.split('_t')[-1].split("_ch")[0])):
             if file not in ran:
-                if file.endswith(".nd2"):
-                    print("Processing " + file)
-                    #data, header = nrrd.read(os.path.join(folder, file))
-                    data = nd2.imread(os.path.join(folder, file))
+                # if file.endswith(".nd2"):
+                #     print("Processing " + file)
+                #     #data, header = nrrd.read(os.path.join(folder, file))
+                #     data = nd2.imread(os.path.join(folder, file))
 
-                    print(data.shape)
-                    # red = np.expand_dims(data[8:72, 1, 135:495, 57:909], 0)
-                    # green = np.expand_dims(data[8:72, 0, 135:495, 57:909], 0)
-                    red = data[8:72, 1, 135:495, 57:909]
-                    green = data[8:72, 0, 135:495, 57:909]
-                    H, W = red.shape[-2:]
-                    red = red.reshape(*red.shape[:-2], H // 3, 3, W // 3, 3)
-                    red = red.sum(axis=(-1, -3))
-                    green = green.reshape(*green.shape[:-2], H // 3, 3, W // 3, 3)
-                    green = green.sum(axis=(-1, -3))
-                    print(red.shape)
-                
-                elif file.endswith("ch2.nrrd"):
+                #     print(data.shape)
+                #     # red = np.expand_dims(data[8:72, 1, 135:495, 57:909], 0)
+                #     # green = np.expand_dims(data[8:72, 0, 135:495, 57:909], 0)
+                #     red = data[8:72, 1, 135:495, 57:909]
+                #     green = data[8:72, 0, 135:495, 57:909]
+                #     H, W = red.shape[-2:]
+                #     red = red.reshape(*red.shape[:-2], H // 3, 3, W // 3, 3)
+                #     red = red.sum(axis=(-1, -3))
+                #     green = green.reshape(*green.shape[:-2], H // 3, 3, W // 3, 3)
+                #     green = green.sum(axis=(-1, -3))
+                #     print(red.shape)
+
+                #elif
+                if file.endswith("ch2.nrrd"):
                     print("Processing NRRD (assumed binned) " + file)
                     data, header = nrrd.read(os.path.join(folder, file))
                     # print(data.shape)
                     data = data.transpose(2, 1, 0)  # XYZ to ZYX
                     # red = np.expand_dims(data[...], 0)
-                    red = data[8:72, 135:495, 57:909] # Naive cropping
-                    red = np.ascontiguousarray(data[...])
+                    red = data[8:72, 45:165, 19:303] # Naive cropping
+                    # red = data[8:72, 135:495, 57:909] # Naive cropping
+                    red = np.ascontiguousarray(red)
                     # red = data
                     data, header = nrrd.read(os.path.join(folder, file.replace("ch2", "ch1")))
                     data = data.transpose(2, 1, 0)  # XYZ to ZYX
                     # green = data[...]
-                    green = data[8:72, 135:495, 57:909] # Naive cropping
-                    green = np.ascontiguousarray(data[...])
+                    green = data[8:72, 45:165, 19:303] # Naive cropping
+                    green = np.ascontiguousarray(green)
 
                     # r = red.to(device, non_blocking=True)
                     # static_red.copy_(r, non_blocking=True)
@@ -163,16 +165,17 @@ def main():
                     # static_green.copy_(g, non_blocking=True)
 
                     
+                    t = int(file.split("t")[-1].split("_")[0])
                     # green = data
 
-                elif file.endswith(".h5"):
-                    if "2022-07-27-31" not in file:
-                        continue
+                # elif file.endswith(".h5"):
+                #     if "2022-07-27-31" not in file:
+                #         continue
                     
-                    with h5py.File(os.path.join(folder, file), 'r') as f:
-                        red = np.ascontiguousarray(f["raw"][0])
-                        green = red
-                    print("Processing h5 (red only) " + file)
+                #     with h5py.File(os.path.join(folder, file), 'r') as f:
+                #         red = np.ascontiguousarray(f["raw"][0])
+                #         green = red
+                #     print("Processing h5 (red only) " + file)
                     
 
                 
@@ -182,14 +185,16 @@ def main():
                 D,H,W = red.shape
                 print(f"Array size: D:{D} H:{H} W:{W}")
 
+                with h5py.File(f"/home/brian/data4/brian/freelyMoving/data/ACLL_unsheared/H5_raw_full_dataset/train/2022-07-27-31_{t}.h5", "r") as f:
+                    labels = torch.tensor(f["label"][:], device=device)
+
                 # I'm just going to say from now on, [D, H, W] is the order we're going with
-                chan_align_params = predictor.predict(red, green)
-                # chan_align_params = predictor.predict(red, green, frame = file.split('_')[-1].split(".")[0])
+                chan_align_params = predictor.predict(red, green, labels = labels)
                 x_tot += chan_align_params[0]
                 y_tot += chan_align_params[1]
                 th_tot += chan_align_params[2]
                 chan_calb_count += 1
-                print(chan_align_params)
+                # print(chan_align_params)
 
                 # g.replay()
                 ran.append(file)

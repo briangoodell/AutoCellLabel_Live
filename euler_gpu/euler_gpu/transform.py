@@ -176,7 +176,7 @@ def transform_image_3d_torch(resized_moving_image_xyz,
     else:
         raise ValueError("dimension must be 0, 1, or 2")
 
-    print(moving_image_xyz_tensor.shape)
+    # print(moving_image_xyz_tensor.shape)
 
     transformed_moving_image_xyz = transform_image(
                 moving_image_xyz_tensor,
