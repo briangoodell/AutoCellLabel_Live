@@ -78,13 +78,15 @@ def main():
     # model = model.to(memory_format=torch.channels_last_3d)
 
     folder = "F:\\Brian\\Live"
-    folder = "/home/brian/data4/brian/freelyMoving/data/ACLL_unsheared/NRRD_raw"
+    # folder = "/home/brian/data4/brian/freelyMoving/data/ACLL_unsheared/NRRD_raw"
+    folder = "/home/brian/data4/brian/freelyMoving/data/ACLL_unsheared/NRRD_raw_test"
+    # folder = "/home/brian/data4/brian/freelyMoving/data/ACLL_unsheared/H5_raw_full_dataset/train"
     # folder = "/home/brian/data4/brian/freelyMoving/data/ACLL_unsheared/train"
-    warmup_file = "/home/brian/data4/brian/freelyMoving/data/ACLL_unsheared/NRRD_raw/2022-07-27-31_t0001_ch2.nrrd"
+    # warmup_file = "/home/brian/data4/brian/freelyMoving/data/ACLL_unsheared/NRRD_raw/2022-07-27-31_t0001_ch2.nrrd"
     assert os.path.exists(folder), "Folder does not exist"
     # assert not os.path.exists(os.path.join(folder, "liveTraces.h5")), "liveTraces.h5 already exists in the folder"
 
-    predictor = _get_predictor(model, None, os.path.join(folder, "liveTraces.h5"), config) # We can have just one predictor, because we are saving it all to one file
+    predictor = _get_predictor(model, None, os.path.join(folder, "liveTraces_mergeshear.h5"), config) # We can have just one predictor, because we are saving it all to one file
 
     ran = []
 
@@ -118,12 +120,18 @@ def main():
     y_tot = 0.0
     th_tot = 0.0
     chan_calb_count = 0
+    calc_chan_align_params = None
 
 
     while True:
         files = [x for x in os.listdir(folder) if x.endswith(".nd2") or x.endswith("ch2.nrrd") or (x.endswith(".h5") and "liveTraces" not in x)]
+        # files = [x for x in os.listdir(folder) if x.endswith(f"_{len(ran) + 1}.h5")]
+
+        # files = [x for x in files if "2022-07-27-31" in x]
+        
         # for file in sorted(files, key=lambda x: int(x.split('_')[-1].split(".")[0])):
         for file in sorted(files, key=lambda x: int(x.split('_t')[-1].split("_ch")[0])):
+        # for file in files:
             if file not in ran:
                 # if file.endswith(".nd2"):
                 #     print("Processing " + file)
@@ -168,14 +176,20 @@ def main():
                     t = int(file.split("t")[-1].split("_")[0])
                     # green = data
 
-                # elif file.endswith(".h5"):
-                #     if "2022-07-27-31" not in file:
-                #         continue
+                elif file.endswith(".h5"):
+                    if "2022-07-27-31" not in file:
+                        continue
                     
-                #     with h5py.File(os.path.join(folder, file), 'r') as f:
-                #         red = np.ascontiguousarray(f["raw"][0])
-                #         green = red
-                #     print("Processing h5 (red only) " + file)
+                    
+                    with h5py.File(os.path.join(folder, file), 'r') as f:
+                        red = np.ascontiguousarray(f["raw"][0])
+                        green = red
+
+                        # green = np.ascontiguousarray(f["raw_green"][0])
+                        # labels = torch.tensor(f["label"][:], device=device)
+
+                    print("Processing h5 " + file)
+                    t = int(file.split("_")[-1].split(".")[0])
                     
 
                 
@@ -185,15 +199,21 @@ def main():
                 D,H,W = red.shape
                 print(f"Array size: D:{D} H:{H} W:{W}")
 
-                with h5py.File(f"/home/brian/data4/brian/freelyMoving/data/ACLL_unsheared/H5_raw_full_dataset/train/2022-07-27-31_{t}.h5", "r") as f:
-                    labels = torch.tensor(f["label"][:], device=device)
+                # with h5py.File(f"/home/brian/data4/brian/freelyMoving/data/ACLL_unsheared/H5_raw_full_dataset/train/2022-07-27-31_{t}.h5", "r") as f:
+                #     labels = torch.tensor(f["label"][:], device=device)
 
                 # I'm just going to say from now on, [D, H, W] is the order we're going with
-                chan_align_params = predictor.predict(red, green, labels = labels)
+                chan_align_params = predictor.predict(red, green, chan_align_params=calc_chan_align_params)
+                # chan_align_params = predictor.predict(red, green, frame=t)
+                # chan_align_params = predictor.predict(red, green, labels = labels)
                 x_tot += chan_align_params[0]
                 y_tot += chan_align_params[1]
                 th_tot += chan_align_params[2]
                 chan_calb_count += 1
+                if chan_calb_count == 10:
+                    calc_chan_align_params = (x_tot/chan_calb_count,
+                                                y_tot/chan_calb_count,
+                                                th_tot/chan_calb_count)
                 # print(chan_align_params)
 
                 # g.replay()

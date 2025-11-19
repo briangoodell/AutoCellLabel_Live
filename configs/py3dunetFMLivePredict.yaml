@@ -1,5 +1,6 @@
 # path to the checkpoint file containing the model
-model_path: checkpoints/best_FM_checkpoint.pytorch
+# model_path: checkpoints/best_FM_checkpoint.pytorch
+model_path: /home/brian/data4/brian/freelyMoving/ACLL_checkpoints/best_checkpoint-CrEnRe.pytorch
 
 ## Make sure to double check datapath
  

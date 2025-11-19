@@ -131,7 +131,7 @@ class LivePredictor(_AbstractPredictor):
 
             # shift, error, phasediff = cucim.skimage.registration.phase_cross_correlation
             # shift, error, phasediff = skimage.registration.phase_cross_correlation
-            batch, shear_params_dict = shear_correction_torch(batch)
+            # batch, shear_params_dict = shear_correction_torch(batch)
 
             # batch, shear_params_dict = shear_correction_scikit(batch.detach().cpu().numpy())
             # batch = torch.tensor(batch).to(device, non_blocking=True).to(torch.float32)
@@ -144,14 +144,23 @@ class LivePredictor(_AbstractPredictor):
             # print(batch.shape)
             # forward pass
             assert batch.device == device, f"Batch device {batch.device} does not match model device {device}"
-            # predictions = self.model(batch)
+            predictions = self.model(batch)
             # assert predictions.shape[0] == 1, "Batch size other than 1 not supported in LivePredictor"
 
-            # with h5py.File(f"/home/brian/data4/brian/freelyMoving/data/ACLL_unsheared/NRRD_raw_preds/preds_{frame}.h5", "w") as f:
+            # with h5py.File(f"/home/brian/data4/brian/freelyMoving/data/ACLL_unsheared/NRRD_raw_preds-CrEnRe_noshear/preds_{frame}.h5", "w") as f:
             #     f.create_dataset("predictions", data=predictions.detach().cpu())
+            # return (0, 0, 0)
 
-
-            print(labels.shape)
+            num_classes = predictions.shape[1]
+            mask = (predictions > pred_threshold).float()
+            kernel = torch.ones((num_classes, 1, blur_size, blur_size, blur_size), device=device)
+            kernel = kernel / kernel.numel()
+            blurred_probs = F.conv3d(predictions, kernel, stride=1, padding=blur_size // 2, groups = num_classes) * mask
+            blurred_probs = blurred_probs.squeeze(0)
+            # print(torch.unsqueeze(torch.unsqueeze(torch.unsqueeze(probs, -1), -1), -1).expand(predictions.shape).shape)
+            # Then max over layers
+            max_prob, labels = blurred_probs.max(dim=0)
+            # print(labels.shape)
             labels = labels.view(-1)  # Flatten to 1D
 
             ## Get trace from image. 
@@ -166,7 +175,7 @@ class LivePredictor(_AbstractPredictor):
                 #with torch.cuda.stream(green_stream):
                     #green_binned = F.avg_pool2d(green_gpu, 3, 3)
 
-                green_gpu, _ = shear_correction_torch(green_gpu, shear_params_dict)
+                # green_gpu, _ = shear_correction_torch(green_gpu, shear_params_dict)
 
                 batch = batch[0,0]
 
@@ -210,7 +219,7 @@ class LivePredictor(_AbstractPredictor):
                 # print(chan_align_params)
 
                 ##### I'm thinking euler GPU rolling mean until it's under a certain threshold? Then apply, any maybe like check every couple frames? Depends on how fast it is? Could also do like a "warmup period of alignments"
-                green_chan = green_gpu
+                # green_chan = green_gpu
 
                 ### TODO: Traces were slightly off 1 when running with same image. Check chan align or shear?
 
@@ -229,7 +238,7 @@ class LivePredictor(_AbstractPredictor):
             
             # signal = ((sums_sig / counts) / (sums_mkr / counts).clamp_min(1)) # If we want to remove NaNs
             # prof.step()
-        # folder = "/home/brian/data4/brian/freelyMoving/data/ACLL_unsheared/NRRD_raw/preds/" 
+        # folder = "/home/brian/data4/brian/freelyMoving/data/ACLL_unsheared/NRRD_raw/preds" 
         # with h5py.File(folder + str(len(os.listdir(folder))) + ".h5", 'a') as output_file:
         #     output_file.create_dataset("preds", data=labels.cpu().numpy().reshape(volume_shape))
         #     output_file.create_dataset("batch", data=batch.cpu().numpy().reshape(volume_shape))
@@ -239,10 +248,10 @@ class LivePredictor(_AbstractPredictor):
         # h5_output_file.create_dataset("signal", data=signal.cpu().numpy())
         
         
-        # sig_DS = h5_output_file['signal'] if 'signal' in h5_output_file else h5_output_file.create_dataset("signal", (out_channels,0), maxshape=(out_channels,None), chunks=True)
+        sig_DS = h5_output_file['signal'] if 'signal' in h5_output_file else h5_output_file.create_dataset("signal", (out_channels,0), maxshape=(out_channels,None), chunks=True)
         
         # Add chan for uncertain lab. Just for running on ground truth vals
-        sig_DS = h5_output_file['signal'] if 'signal' in h5_output_file else h5_output_file.create_dataset("signal", (out_channels + 1, 0), maxshape=(out_channels + 1,None), chunks=True)
+        # sig_DS = h5_output_file['signal'] if 'signal' in h5_output_file else h5_output_file.create_dataset("signal", (out_channels + 1, 0), maxshape=(out_channels + 1,None), chunks=True)
         
         current_shape = sig_DS.shape#.cpu().numpy()
         new_length = current_shape[1] + 1
