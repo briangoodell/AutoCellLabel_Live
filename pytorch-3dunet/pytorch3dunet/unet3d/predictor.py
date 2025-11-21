@@ -124,6 +124,8 @@ class LivePredictor(_AbstractPredictor):
         with torch.inference_mode():
             # send batch to device
             batch = torch.tensor(red_chan).to(device, non_blocking=True).to(torch.float32)
+            batch = batch - torch.median(batch) # Background substract
+
             # batch = torch.permute(batch, (1, 2, 0))
             # batch = red_chan
             # with h5py.File(f"/home/brian/data4/brian/freelyMoving/data/ACLL_unsheared/NRRD_raw_preds/preds_{frame}.h5", "w") as f:
@@ -148,6 +150,7 @@ class LivePredictor(_AbstractPredictor):
             # assert predictions.shape[0] == 1, "Batch size other than 1 not supported in LivePredictor"
 
             # with h5py.File(f"/home/brian/data4/brian/freelyMoving/data/ACLL_unsheared/NRRD_raw_preds-CrEnRe_noshear/preds_{frame}.h5", "w") as f:
+            # with h5py.File(f"/home/brian/data4/brian/freelyMoving/data/ACLL_unsheared/predictions_mergeshear/{frame}.h5", "w") as f:
             #     f.create_dataset("predictions", data=predictions.detach().cpu())
             # return (0, 0, 0)
 
@@ -170,6 +173,9 @@ class LivePredictor(_AbstractPredictor):
                 green_chan = torch.ones_like(batch, device=device) # Placeholder 
             else:
                 green_gpu = torch.tensor(green_chan).to(device, non_blocking = True).to(torch.float32)
+                # green_gpu = green_gpu - 100
+                green_gpu = green_gpu - torch.median(green_gpu) # Background substract
+
                 # green_gpu = torch.permute(green_gpu, (1, 2, 0))
 
                 #with torch.cuda.stream(green_stream):

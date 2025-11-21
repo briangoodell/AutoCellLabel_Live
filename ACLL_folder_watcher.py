@@ -82,11 +82,61 @@ def main():
     folder = "/home/brian/data4/brian/freelyMoving/data/ACLL_unsheared/NRRD_raw_test"
     # folder = "/home/brian/data4/brian/freelyMoving/data/ACLL_unsheared/H5_raw_full_dataset/train"
     # folder = "/home/brian/data4/brian/freelyMoving/data/ACLL_unsheared/train"
+    # folder = "/home/brian/data4/brian/freelyMoving/data/ACLL_unsheared/test"
     # warmup_file = "/home/brian/data4/brian/freelyMoving/data/ACLL_unsheared/NRRD_raw/2022-07-27-31_t0001_ch2.nrrd"
-    assert os.path.exists(folder), "Folder does not exist"
+
+    ## TEMP
+    input_paths = {
+        "prj_rim": "/store1/prj_rim/data_processed",
+        "prj_neuropal": "/store1/prj_neuropal/data_processed",
+        "prj_starvation": "/data1/prj_starvation/data_processed",
+        "prj_5ht": "/data3/prj_5ht/published_data/data_processed_neuropal",
+        "prj_aversion": "/data1/prj_aversion/data_processed"
+    }
+    datasets_prj_neuropal = ["2022-07-15-06", "2022-07-15-12", "2022-07-20-01", "2022-07-26-01", "2022-08-02-01", "2023-01-23-08", "2023-01-23-15", "2023-01-23-21", "2023-01-19-08", "2023-01-19-22", "2023-01-09-28", "2023-01-17-01", "2023-01-19-15", "2023-01-23-01", "2023-03-07-01", "2022-12-21-06", "2023-01-05-18", "2023-01-06-01", "2023-01-06-08", "2023-01-09-08", "2023-01-09-15", "2023-01-09-22", "2023-01-10-07", "2023-01-10-14", "2023-01-13-07", "2023-01-16-01", "2023-01-16-08", "2023-01-16-15", "2023-01-16-22", "2023-01-17-07", "2023-01-17-14", "2023-01-18-01"]
+    datasets_prj_rim = ["2023-06-09-01", "2023-07-28-04", "2023-06-24-02", "2023-07-07-11", #"2023-08-07-01", # Don't use because worm stops moving about 5min in
+                        "2023-06-24-11", "2023-07-07-18", "2023-08-18-11", "2023-06-24-28", "2023-07-11-02", "2023-08-22-08", "2023-07-12-01", "2023-07-01-09", "2023-07-13-01", "2023-06-09-10", "2023-07-07-01", "2023-08-07-16", "2023-08-22-01", "2023-08-23-23", "2023-08-25-02", "2023-09-15-01", "2023-09-15-08", "2023-08-18-18", "2023-08-19-01", "2023-08-23-09", "2023-08-25-09", "2023-09-01-01", "2023-08-31-03", "2023-07-01-01", "2023-07-01-23"]
+
+    datasets_prj_aversion = [#"2023-03-30-01", 
+        "2023-06-29-01", "2023-06-29-13", "2023-07-14-08", "2023-07-14-14", "2023-07-27-01", "2023-08-08-07", "2023-08-14-01", "2023-08-16-01", "2023-08-21-01", "2023-09-07-01", "2023-09-14-01", "2023-08-15-01", "2023-10-05-01", "2023-06-23-08", #"2023-12-11-01", 
+                            "2023-06-21-01"]
+    datasets_prj_5ht = ["2022-07-26-31", "2022-07-26-38", "2022-07-27-31", "2022-07-27-38", "2022-07-27-45", "2022-08-02-31", "2022-08-02-38", "2022-08-03-31"]
+    datasets_prj_starvation = ["2023-05-25-08", "2023-05-26-08", "2023-06-05-10", "2023-06-05-17", "2023-07-24-27", "2023-09-27-14", "2023-05-25-01", "2023-05-26-01", "2023-07-24-12", "2023-07-24-20", "2023-09-12-01", "2023-09-19-01", "2023-09-29-19", "2023-10-09-01", "2023-09-13-02"]
+
+
+    def get_folder(dataset):
+        if dataset in datasets_prj_neuropal:
+            return os.path.join(input_paths["prj_neuropal"], f"{dataset}_output")
+        elif dataset in datasets_prj_rim:
+            return os.path.join(input_paths["prj_rim"], f"{dataset}_output")
+        elif dataset in datasets_prj_aversion:
+            return os.path.join(input_paths["prj_aversion"], f"{dataset}_output")
+        elif dataset in datasets_prj_5ht:
+            return os.path.join(input_paths["prj_5ht"], f"{dataset}_output")
+        elif dataset in datasets_prj_starvation:
+            return os.path.join(input_paths["prj_starvation"], f"{dataset}_output")
+        else:
+            raise ValueError("Dataset not recognized")
+
+
+
+    datasets_test = ['2023-08-22-01', '2023-07-07-18', '2023-07-01-23',  # RIM datasets
+                 '2023-01-06-01', '2023-01-10-07', '2023-01-17-07', # Neuropal datasets
+                 '2023-08-21-01', "2023-06-23-08", # Aversion datasets
+                 '2022-07-27-38', # 5-HT datasets
+                 '2023-10-09-01', '2023-09-13-02' # Starvation datasets
+                 ]
+    folders = [os.path.join(get_folder(x), "NRRD") for x in datasets_test]
+
+
+
+
+
+
+    # assert os.path.exists(folder), "Folder does not exist"
     # assert not os.path.exists(os.path.join(folder, "liveTraces.h5")), "liveTraces.h5 already exists in the folder"
 
-    predictor = _get_predictor(model, None, os.path.join(folder, "liveTraces_mergeshear.h5"), config) # We can have just one predictor, because we are saving it all to one file
+    predictor = _get_predictor(model, None, os.path.join(folder, "liveTraces_mergeshear_bgsubtract.h5"), config) # We can have just one predictor, because we are saving it all to one file
 
     ran = []
 
@@ -124,6 +174,14 @@ def main():
 
 
     while True:
+    
+    #### TEMP
+    # for folder, ds in zip(folders, datasets_test):
+    #     assert os.path.exists(folder), "Folder does not exist"
+    #     print(folder)
+    #     predictor = _get_predictor(model, None, f"/home/brian/data4/brian/freelyMoving/data/ACLL_unsheared/traces_from_test_DSs/liveTraces_{ds}_mergeshear.h5", config) # We can have just one predictor, because we are saving it all to one file
+    ####
+    
         files = [x for x in os.listdir(folder) if x.endswith(".nd2") or x.endswith("ch2.nrrd") or (x.endswith(".h5") and "liveTraces" not in x)]
         # files = [x for x in os.listdir(folder) if x.endswith(f"_{len(ran) + 1}.h5")]
 
@@ -173,12 +231,12 @@ def main():
                     # static_green.copy_(g, non_blocking=True)
 
                     
-                    t = int(file.split("t")[-1].split("_")[0])
+                    frame = int(file.split("t")[-1].split("_")[0])
                     # green = data
 
                 elif file.endswith(".h5"):
-                    if "2022-07-27-31" not in file:
-                        continue
+                    # if "2022-07-27-31" not in file:
+                    #     continue
                     
                     
                     with h5py.File(os.path.join(folder, file), 'r') as f:
@@ -189,7 +247,8 @@ def main():
                         # labels = torch.tensor(f["label"][:], device=device)
 
                     print("Processing h5 " + file)
-                    t = int(file.split("_")[-1].split(".")[0])
+                    # t = int(file.split("_")[-1].split(".")[0])
+                    frame = os.path.splitext(file)[0]
                     
 
                 
@@ -203,7 +262,7 @@ def main():
                 #     labels = torch.tensor(f["label"][:], device=device)
 
                 # I'm just going to say from now on, [D, H, W] is the order we're going with
-                chan_align_params = predictor.predict(red, green, chan_align_params=calc_chan_align_params)
+                chan_align_params = predictor.predict(red, green, chan_align_params=calc_chan_align_params, frame=frame)
                 # chan_align_params = predictor.predict(red, green, frame=t)
                 # chan_align_params = predictor.predict(red, green, labels = labels)
                 x_tot += chan_align_params[0]
