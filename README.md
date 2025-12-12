@@ -11,13 +11,36 @@ Which is in turn based on PyTorch implementation of 3D U-Net and its variants:
 
 # AutoCellLabeler Live
 
-The current version of ACLL runs Binning, Shear Correction, Labeling, Channel Alignment, and Trace Extraction (BSLCT).
+ACLL is a **work in progress**. The current version of ACLL runs Binning, Shear Correction, Labeling, Channel Alignment, and Trace Extraction (BSLCT).
 
 Future iterations will include:
 - Intelligent cropping (to maximize the number of neurons in frame)
 - ROI Filtering
 - Bleach Correction
 
+### Efficency
+The ACLL approach of labeling each frame directly allows us to skip costly (and necessarily offline) alignment, performing the purpose of BrainAlignNet, SegNet, and AutoCellLabeler in tandem. This removes the need for the following parts of [ANTSUN 2.1](https://github.com/flavell-lab/ANTSUN):
+- Euler Registration (6 hours)
+- BrainAlignNet DDF Calculation (5 hrs)
+- SegNet ROI Segmentation (1 hr)
+- ROI Watersheding, Displacement & Non-rigid Pentalty Calculation (8 hrs)
+- Freely Moving to Immobilized Registration (2-16 hrs)
+- Multicolor Image Registration (1-3 hrs)
+- Trace Extraction (< 1 hr)
+
+It also directly implements and performs the function of the following sections:
+- Shear Correction (2 hrs)
+- Freely Moving Channel Alignment (< 1 hrs)
+- Auto Cell Labeler Inference (5 min - on one frame)
+
+Thus, assuming fastest ANTSUN 2.1 conditions, ACLL performs the equivalent of 27 hours of computation, in 32 minutes. Running timepoints simultanously can bring that down just over 16 minutes (16 minutes is our standard experiment duration).
+
+![a graph showing ACLL's time benefits over ANTSUN](./metrics/visualizations/speedup_comparison.png)
+*The area represents relative time, with internal squares showing the proportion of time actually running inference versus preparting to run it*
+
+This being said, ACLL is not currently intended to replace ANTSUN (although Freely Moving ACL accuracy improvements can be compounded by aggregrating predictions across frames, allowing for accuracies matching ANTSUN's single frame, multi-color performance) and is intended to interogate the activity of pre-selected neurons in real time. This is important, since some neurons are labeled more consistently than others in freely moving frames, so smart selection can greatly boost usefulness. Luckily, there are plenty of high-accuracy neuron options.
+![Six randomly selected traces demonstrate ACLL's high performance on a large subset of neurons](./metrics/visualizations/trace_comparison_grid.png)
+*Six random traces show that even without ROI filtering or smoothing, ACLL accurately captures neural dynamics*
 
 ## The Pipeline
 ### Image Reading
