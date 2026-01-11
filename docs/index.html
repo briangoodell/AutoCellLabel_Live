@@ -5,8 +5,9 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>ACL Live</title>
   <meta name="description" content="An overview of an accelerated labeling & trace extraction pipeline." />
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles.css?v=20260111" />
   <link rel="icon" type="image/x-icon" href="images/worm_favicon.png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
 <body>
   <header class="site-header">
@@ -15,12 +16,6 @@
         <span class="brand-dot" aria-hidden="true"></span>
         <span>ACL Live</span>
       </a>
-      <!-- <nav class="nav" aria-label="Page">
-        <a target="_blank" rel="noopener noreferrer" href="#background">Background</a>
-        <a target="_blank" rel="noopener noreferrer" href="#pipeline">Pipeline</a>
-        <a target="_blank" rel="noopener noreferrer" href="#improvements">Improvements</a>
-        <a target="_blank" rel="noopener noreferrer" href="#figures">Figures</a>
-      </nav> -->
     </div>
   </header>
 
@@ -28,20 +23,13 @@
     <section class="hero">
       <div class="container">
         <p class="kicker"><a target="_blank" rel="noopener noreferrer" href="https://www.briandalegoodell.com">Brian Goodell</a> • 
-        <a target="_blank" rel="noopener noreferrer" href="https://www.briandalegoodell.com">briandalegoodell.com</a> • 
-        <a target="_blank" rel="noopener noreferrer" href="https://www.github.com/briangoodell">github.com/briangoodell</a> • 
-        <a target="_blank" rel="noopener noreferrer" href="https://www.linkedin.com/in/brian-goodell/">linkedin.com/in/brian-goodell/</a></p>
+        <a href="https://www.github.com/briangoodell" class="fa fa-github" target="_blank" aria-label="GitHub"></a> • 
+        <a href="https://www.linkedin.com/in/brian-goodell/" class="fa fa-linkedin" target="_blank" aria-label="LinkedIn"></a>
+        </p>
         <h1>AutoCellLabeler Live</h1>
         <p class="lede">
           Online full-brain labeling for <i>C. elegans</i>; allowing novel experiments informed by real-time neuronal data.
         </p>
-
-        <!-- <div class="meta">
-          <div class="pill">C. elegans • NeuroPAL • time-series</div>
-          <div class="pill">Registration → ID → traces</div>
-          <div class="pill">Speed + robustness</div>
-        </div> -->
-
         <div class="note">
           This is one of my two main projects in the <a target="_blank" rel="noopener noreferrer" href="https://flavell.mit.edu">Flavell Lab</a>. Check out the other <a href="https://laser.briandalegoodell.com">here</a>.
         </div>
@@ -59,15 +47,11 @@
 
         <div class="two">
           <div>
-            <!-- <h3 class="subhead">That pipeline performed:</h3> -->
             <ul class="bullets">
-              <!-- <li><strong>Non-rigid registration</strong> to track ROIs across freely moving volumes and match them to immobilized frames</li> -->
               <li><strong>BrainAlignNet</strong> performed non-rigid registration to track ROIs across freely moving volumes, match them to immobilized frames, and <a target="_blank" rel="noopener noreferrer" href="https://doi.org/10.1016/j.cell.2023.07.035">enable freely moving trace extraction</a></li>
                 
-              <!-- <li><strong>Automated annotation</strong> of those ROIs within the data-rich immobilized frames</li> -->
               <li><strong>AutoCellLabeler</strong> identifies the neuron class of ROIs within the data-rich immobilized frames, allowing our lab to scale our recording volume and experimental bandwidth, without the bottleneck of hours of manual human labeling per dataset.</li>
 
-              <!-- <li><strong>Cross-animal alignment</strong> as a building block for unsupervised discovery / generalization.</li> -->
             </ul>
             <p>
               This process worked incredibly well, performing high-quality automated labeling and trace extraction, but although BrainAlignNet does clever registration graph solving to minimize the amount of computation required, the pipeline was still bulky and slow.
@@ -104,7 +88,6 @@
               <li>Intensive tracing focused on code and data management optimization resulted in faster inference (1 minute -> 0.91 seconds)</li>
               <li>Significantly decreased peak memory usage in training and inference allows for batching in both</li>
               <li>Custom NIS Elements acquisition setup to ensure data can be accessed and processed in real time (this was a pain)</li>
-              <!-- <li></li> -->
             </ul>
           </article>
 
@@ -141,7 +124,6 @@
             All neurons are shown in our lab's standardized order, with blank graph indicating neither ACLL nor ANTSUN extracted a trace.
           </p>
           <figure class="figure">
-            <!-- <img src="images/trace_comparison_grid.png" alt="Example trace comparison plot." loading="lazy" /> -->
             <img src="images/trace_and_confidence_vs_correctness.png" alt="Example trace comparison plot." loading="lazy" />
             <figcaption>All of the traces produced by ANTSUN and ACLL for a randomly selected testing dataset.</figcaption>
           </figure>

@@ -56,17 +56,6 @@ body{
   background:var(--fg);
   display:inline-block;
 }
-.nav{
-  display:flex;
-  gap: 14px;
-  flex-wrap: wrap;
-}
-.nav a{
-  color:var(--muted);
-  text-decoration:none;
-  font-size: 14px;
-}
-.nav a:hover{ color:var(--fg); }
 
 /* Hero */
 .hero{
@@ -113,6 +102,9 @@ h1{
   background: var(--soft);
   color: #2a2a2a;
   width: fit-content;
+}
+.fa{
+  font-size: 16;
 }
 
 /* Sections */
