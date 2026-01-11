@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ACL Live</title>
+  <meta name="description" content="An overview of an accelerated labeling & trace extraction pipeline." />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" type="image/x-icon" href="images/worm_favicon.png">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="#top" aria-label="Go to top">
+        <span class="brand-dot" aria-hidden="true"></span>
+        <span>ACL Live</span>
+      </a>
+      <!-- <nav class="nav" aria-label="Page">
+        <a target="_blank" rel="noopener noreferrer" href="#background">Background</a>
+        <a target="_blank" rel="noopener noreferrer" href="#pipeline">Pipeline</a>
+        <a target="_blank" rel="noopener noreferrer" href="#improvements">Improvements</a>
+        <a target="_blank" rel="noopener noreferrer" href="#figures">Figures</a>
+      </nav> -->
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="container">
+        <p class="kicker"><a target="_blank" rel="noopener noreferrer" href="https://www.briandalegoodell.com">Brian Goodell</a> • 
+        <a target="_blank" rel="noopener noreferrer" href="https://www.briandalegoodell.com">briandalegoodell.com</a> • 
+        <a target="_blank" rel="noopener noreferrer" href="https://www.github.com/briangoodell">github.com/briangoodell</a> • 
+        <a target="_blank" rel="noopener noreferrer" href="https://www.linkedin.com/in/brian-goodell/">linkedin.com/in/brian-goodell/</a></p>
+        <h1>AutoCellLabeler Live</h1>
+        <p class="lede">
+          Online full-brain labeling for <i>C. elegans</i>; allowing novel experiments informed by real-time neuronal data.
+        </p>
+
+        <!-- <div class="meta">
+          <div class="pill">C. elegans • NeuroPAL • time-series</div>
+          <div class="pill">Registration → ID → traces</div>
+          <div class="pill">Speed + robustness</div>
+        </div> -->
+
+        <div class="note">
+          This is one of my two main projects in the <a target="_blank" rel="noopener noreferrer" href="https://flavell.mit.edu">Flavell Lab</a>. Check out the other <a href="https://laser.briandalegoodell.com">here</a>.
+        </div>
+      </div>
+    </section>
+
+    <section id="background" class="section">
+      <div class="container">
+        <h2>Background</h2>
+        <p>
+          In freely moving <i>C. elegans</i> imaging, the nervous system deforms continuously and in a non-rigid manner. Thus, determining and maintaining neuron identity over time (and across animals) has been a longstanding and challenging problem. 
+          <a target="_blank" rel="noopener noreferrer" href="https://pubmed.ncbi.nlm.nih.gov/33378642/">NeuroPAL</a> drastically increased the ease of labeling, expressing combinations of fluorophores to give each neuron a "color." This foundational work enabled highly-trained scientists to label many neurons in a <i>C. elegans</i> brain, although many were often still hard to discriminate. Immobilizing the animal (at the end of a recording) is necessary to achieve a high SNR image and for most microscopes to perform full-color acquisition.
+          To improve that, <a target="_blank" rel="noopener noreferrer" href="https://pubmed.ncbi.nlm.nih.gov/40667327/">Atanas et&nbsp;al.</a>, described networks that (i) perform high-quality, non-rigid alignment and (ii) accurately annotate neuron identities from NeuroPAL volumes to form an incredibly useful trace-extraction pipeline: 
+        </p>
+
+        <div class="two">
+          <div>
+            <!-- <h3 class="subhead">That pipeline performed:</h3> -->
+            <ul class="bullets">
+              <!-- <li><strong>Non-rigid registration</strong> to track ROIs across freely moving volumes and match them to immobilized frames</li> -->
+              <li><strong>BrainAlignNet</strong> performed non-rigid registration to track ROIs across freely moving volumes, match them to immobilized frames, and <a target="_blank" rel="noopener noreferrer" href="https://doi.org/10.1016/j.cell.2023.07.035">enable freely moving trace extraction</a></li>
+                
+              <!-- <li><strong>Automated annotation</strong> of those ROIs within the data-rich immobilized frames</li> -->
+              <li><strong>AutoCellLabeler</strong> identifies the neuron class of ROIs within the data-rich immobilized frames, allowing our lab to scale our recording volume and experimental bandwidth, without the bottleneck of hours of manual human labeling per dataset.</li>
+
+              <!-- <li><strong>Cross-animal alignment</strong> as a building block for unsupervised discovery / generalization.</li> -->
+            </ul>
+            <p>
+              This process worked incredibly well, performing high-quality automated labeling and trace extraction, but although BrainAlignNet does clever registration graph solving to minimize the amount of computation required, the pipeline was still bulky and slow.
+              Unfortunately, it was taken for granted that post-hoc trace analysis was inevitable, leading to experiments which had to be limited in scope, performed hoping the animal was in the correct behavioral state, or just discarded.
+            </p>
+          </div>
+
+          <figure class="figure">
+            <img src="images/ANTSUN_overview.png" alt="Atanas et al. 2023 (Fig. 1D)." loading="lazy" />
+            <figcaption>
+              Our lab's pipeline allowed for trace extraction from freely moving <i>C. elegans</i>, but with significant delay.
+            </figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section id="improvements" class="section">
+      <div class="container">
+        <h2>AutoCellLabel Live</h2>
+        <p>
+          If we wanted to get real time labeling working, the previous approach would simply not work. First, BrainAlignNet was a non-starter, and the computational difficulty of the non-rigid registration problem was not tractable to perform online. Secondly, we couldn't wait until the end of a recording to get our labels, and would need to move past immobilization, instead performing accurate inference on freely moving frames. Luckily, these problems lend themselves to an elegant mutual solution: if we can label each frame accurately, we no long need to match neurons across freely moving frames. (and, we can still use BrainAlignNet post-doc to perform ANTSUN labeling for verification or even just aggregate freely moving predictions and pick up more neurons than standard ANTSUN).
+        </p>
+        <p>
+          From that idea, I began working on AutoCellLabel Live. ACLL is a pipeline, mostly focused on the FreelyMoving AutoCellLabeler network, but also encompassing highly accelerated preprocessing and trace extraction procedures. Unfortunately, recording practicalities mean we only have <strong>one low-SNR fluorescence channel</strong> to work with, instead of <strong>four high-SNR channels</strong> in the immobilized images. Luckily, we also have 1600 times the number of volumes to train on, as each recording only contains one immobilized image. This, however, meant ACL training would have to speed up, as the published version took more than a week to train on just 81 frames. However, even once the network existed, its inference time would need to be drastically decreased, as it look just over a minute to run. We record a volume <strong><i>every 0.6 seconds</i></strong>, so the entire pipeline would need to complete in that time.
+           
+        </p>
+
+        <div class="cards">
+          <article class="card">
+            <h3>Straight Efficiency Gains</h3>
+            <ul class="bullets">
+              <li>Heavy rewriting of the network and loss, optimization of the data loader, and access to better hardware allowed for faster training (from a week on 81 training frames to 5 hrs on 8100 frames)</li>
+              <li>Intensive tracing focused on code and data management optimization resulted in faster inference (1 minute -> 0.91 seconds)</li>
+              <li>Significantly decreased peak memory usage in training and inference allows for batching in both</li>
+              <li>Custom NIS Elements acquisition setup to ensure data can be accessed and processed in real time (this was a pain)</li>
+              <!-- <li></li> -->
+            </ul>
+          </article>
+
+          <article class="card">
+            <h3>Pipeline Refactoring Gains</h3>
+            <ul class="bullets">
+              <li>Shear correction was prohibitive by itself (>1 second) but turns out you can train a UNet to perform shear correction... so we trained FM ACL to predict on sheared data, eliminating the need for a separate shear-correction step</li>
+              <li>Channel alignment (xy offset of signal channel vs reference labeling channel) was likewise prohibitive (2.5 seconds) but is relatively consistent across each recording. We can take a small sample of the first few frames, do the heavy computation to determine the offset, and apply that to the rest off the frames, which is much faster</li>
+              <li>Naive ROI extraction from ACL predictions removed the need for a segmentation network</li>
+            </ul>
+          </article>
+
+          <article class="card">
+            <h3>Results</h3>
+            <ul class="bullets">
+              <li>After 5 frames to establish our channel alignment parameters, the pipeline runs in 1.2 seconds, which allows us to meet our required FPS with a batch size of 2.</li>
+              <li>Unfortunately, traces are noticeably noisier, and sometimes completely unlike those produced by ANTSUN; the lack of proper segmentation means extraneous pixels can sneak in.</li>
+              <li>However, performance is consistent across a recording (i.e. if a trace starts out looking good, it will keep looking good). Performance is also well correlated with accuracy, which is well correlated with confidence. Meaning we can quickly determine which traces are likely to be good in a recording.</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="figures" class="section">
+      <div class="container">
+        <div class="gallery">
+          <h3>Check out the traces for yourself!</h3>
+          <p>
+            The left frame shows traces from a randomly selected test dataset. Blue is the ground-truth ANTSUN output. Orange is the ACL output. 
+            <br /><br />
+            The right graph in each row shows confidence (Y-axis) vs correctness (green/red) for that neuron in a random sample of frames across all testing datasets. <br /><i class="muted">Human labels may occasionally be incorrect, and we're quantifying how many mislabels ACLL has been able to identify.</i>
+            <br /><br />
+            All neurons are shown in our lab's standardized order, with blank graph indicating neither ACLL nor ANTSUN extracted a trace.
+          </p>
+          <figure class="figure">
+            <!-- <img src="images/trace_comparison_grid.png" alt="Example trace comparison plot." loading="lazy" /> -->
+            <img src="images/trace_and_confidence_vs_correctness.png" alt="Example trace comparison plot." loading="lazy" />
+            <figcaption>All of the traces produced by ANTSUN and ACLL for a randomly selected testing dataset.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <div class="container">
+        <p>
+          <strong>Attributions:</strong> 
+          <br />
+          Atanas AA, Lu AK, Goodell B, Kim J, Baskoylu S, Kang D, Kramer TS, Bueno E, Wan FK, Cunningham KL, Weissbourd B, Flavell SW. (2025) Deep Neural Networks to Register and Annotate Cells in Moving and Deforming Nervous Systems eLife 14:RP108159 
+          https://doi.org/10.7554/eLife.108159.1
+          <br /><br />
+          Atanas AA, Kim J, Wang Z, Bueno E, Becker M, Kang D, Park J, Kramer TS, Wan FK, Baskoylu S, Dag U, Kalogeropoulou E, Gomes MA, Estrem C, Cohen N, Mansinghka VK, Flavell SW. Brain-wide representations of behavior spanning multiple timescales and states in C. elegans. Cell. 2023 Sep 14;186(19):4134-4151.e31. doi: 10.1016/j.cell.2023.07.035. Epub 2023 Aug 21. PMID: 37607537; PMCID: PMC10836760.
+          <br />
+          The included cropped figure is from the Cell version and is licensed CC BY 4.0.
+        </p>
+        <p class="muted">Brian Goodell • 
+        <a target="_blank" rel="noopener noreferrer" href="https://www.briandalegoodell.com">briandalegoodell.com</a> • 
+        <a target="_blank" rel="noopener noreferrer" href="https://www.github.com/briangoodell">github.com/briangoodell</a> • 
+        <a target="_blank" rel="noopener noreferrer" href="https://www.linkedin.com/in/brian-goodell/">linkedin.com/in/brian-goodell/</a>
+      </div>
+    </footer>
+  </main>
+</body>
+</html>

@@ -1,0 +1,243 @@
+:root{
+  --bg:#ffffff;
+  --fg:#111111;
+  --muted:#5a5a5a;
+  --line:#e7e7e7;
+  --soft:#f6f6f6;
+  --max: 980px;
+  --radius: 14px;
+}
+
+*{ box-sizing:border-box; }
+html{ scroll-behavior:smooth; }
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--fg);
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  line-height:1.55;
+}
+
+.container{
+  max-width: var(--max);
+  margin:0 auto;
+  padding: 0 22px;
+}
+
+/* Header */
+.site-header{
+  position:sticky;
+  top:0;
+  background: rgba(255,255,255,1);
+  border-bottom: 1px solid var(--line);
+  backdrop-filter: blur(6px);
+  z-index:10;
+}
+.header-inner{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding: 14px 0;
+  gap: 18px;
+}
+.brand{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  color:var(--fg);
+  text-decoration:none;
+  font-weight:650;
+  letter-spacing:0.2px;
+}
+.brand-dot{
+  width:10px;
+  height:10px;
+  border-radius:999px;
+  background:var(--fg);
+  display:inline-block;
+}
+.nav{
+  display:flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.nav a{
+  color:var(--muted);
+  text-decoration:none;
+  font-size: 14px;
+}
+.nav a:hover{ color:var(--fg); }
+
+/* Hero */
+.hero{
+  padding: 64px 0 24px;
+}
+.kicker{
+  margin:0 0 10px;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+h1{
+  margin:0 0 12px;
+  font-size: clamp(34px, 4.2vw, 54px);
+  line-height:1.06;
+  letter-spacing:-0.02em;
+}
+.lede{
+  margin: 0;
+  font-size: 18px;
+  color: #2a2a2a;
+  /* max-width: 70ch; */
+}
+.meta{
+  display:flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+.pill{
+  border: 1px solid var(--line);
+  padding: 8px 10px;
+  border-radius: 999px;
+  font-size: 13px;
+  color: var(--muted);
+  background: #fff;
+}
+.note{
+  margin-top: 18px;
+  padding: 14px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--soft);
+  color: #2a2a2a;
+  width: fit-content;
+}
+
+/* Sections */
+.section{
+  padding: 56px 0;
+  border-top: 1px solid var(--line);
+}
+.section h2{
+  margin: 0 0 12px;
+  font-size: 22px;
+  letter-spacing: -0.01em;
+}
+.section p{
+  margin: 0 0 14px;
+  max-width: 78ch;
+}
+.muted{ color: var(--muted); }
+
+/* Layout helpers */
+.two{
+  display:grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: 22px;
+  align-items: start;
+  margin-top: 16px;
+}
+@media (max-width: 880px){
+  .two{ grid-template-columns: 1fr; }
+}
+
+.subhead{
+  margin: 4px 0 10px;
+  font-size: 16px;
+}
+
+.bullets{
+  margin: 0;
+  padding-left: 18px;
+}
+.bullets li{ margin: 8px 0; }
+
+/* Steps */
+.steps{
+  margin: 18px 0 0;
+  padding-left: 18px;
+  max-width: 86ch;
+}
+.steps li{ margin: 12px 0; }
+.step-title{ font-weight: 650; }
+.step-body{ color: #2a2a2a; }
+
+/* Cards */
+.cards{
+  display:grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-top: 18px;
+}
+@media (max-width: 900px){
+  .cards{ grid-template-columns: 1fr; }
+}
+.card{
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 16px 16px;
+  background: #fff;
+}
+.card h3{
+  margin: 0 0 10px;
+  font-size: 16px;
+}
+
+/* Figures */
+.figure{
+  margin: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow:hidden;
+  background:#fff;
+}
+.figure img{
+  width:100%;
+  height:auto;
+  display:block;
+}
+.figure figcaption{
+  padding: 10px 12px;
+  font-size: 13px;
+  color: var(--muted);
+  border-top: 1px solid var(--line);
+}
+
+.gallery{
+  display:grid;
+  gap: 14px;
+  margin-top: 18px;
+}
+
+/* Footer */
+.footer{
+  border-top: 1px solid var(--line);
+  padding: 26px 0 40px;
+  color: #2a2a2a;
+}
+.footer p{ margin: 0 0 10px; max-width: 90ch; }
+
+a {
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(0,0,0,0.35);
+  padding-bottom: 1px;
+  transition: border-color 160ms ease, background-color 160ms ease;
+}
+
+a:hover,
+a:focus-visible {
+  border-bottom-color: rgba(0,0,0,0.9);
+  background: rgba(0,0,0,0.04);
+  outline: none;
+}
+
+a:active {
+  background: rgba(0,0,0,0.08);
+}
+
+a:visited {
+  opacity: 0.9;
+}
